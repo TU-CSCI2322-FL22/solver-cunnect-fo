@@ -13,11 +13,11 @@ data Outcome = Winner Player | NoWinner | Tie
 
 
 
-getWinner :: Board -> Player
+getWinner :: GameState -> Outcome
 getWinner = undefined
 makeMove :: Int -> GameState -> Maybe Board
-makeMove = undefined
-validMoves :: Board -> [Move]
+makeMove col state = 
+validMoves :: GameState -> [Move]
 validMoves = undefined
 
 
