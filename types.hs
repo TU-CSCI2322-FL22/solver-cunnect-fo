@@ -4,8 +4,8 @@ import Data.List.Split
 import Data.Maybe
 import Debug.Trace
 
-data Player = Red | Yellow deriving Show
-data Piece = Full Player | Empty deriving Show
+data Player = Red | Yellow deriving (Eq, Show)
+data Piece = Full Player | Empty deriving (Eq, Show)
 type Board = [[Piece]] 
 type Move = Int 
 type GameState = (Board, Player)
@@ -16,7 +16,7 @@ data Outcome = Winner Player | NoWinner | Tie
 getWinner :: GameState -> Outcome
 getWinner = undefined
 
-makeRowMove :: Int -> [Piece] -> Player -> ([Player], Bool)
+makeRowMove :: Int -> [Piece] -> Player -> ([Piece], Bool)
 makeRowMove 0 (x:xs) turn = 
 	if (x == Empty)
     then ((Full turn):xs, True)
@@ -24,9 +24,20 @@ makeRowMove 0 (x:xs) turn =
 makeRowMove col (x:xs) turn =
 	let (row, hasPlaced) = (makeRowMove (col - 1) xs turn)
 	in (x:row, hasPlaced)
-foo (row:rows)
-makeMove :: Int -> GameState -> Maybe Board
-makeMove col state = foo col (reverse state)
+checkEachRow col [] turn = ([], True)
+checkEachRow col (row:rows) turn =
+	let (result, hasChanged) = makeRowMove col row turn
+	in if (hasChanged) then
+		(result:rows, False)
+		else
+			let (results, hasHitEnd) = checkEachRow col rows turn 
+			in (row:results, hasHitEnd)
+--makeMove :: Int -> GameState -> Player -> Maybe GameState
+makeMove col (board, turn) = 
+	let (result, hasHitEnd) = checkEachRow col (reverse board) turn
+	in if (hasHitEnd) then Nothing 
+	else Just (result, if turn == Red then Yellow else Red)
+
 	
 validMoves :: GameState -> [Move]
 validMoves = undefined
