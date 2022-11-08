@@ -20,11 +20,14 @@ makeMove = undefined
 validMoves :: Board -> [Move]
 validMoves = undefined
 
+printBoard :: Board -> IO()
+printBoard brd = putStr $ customShow brd
+
 customShow :: Board -> String
 customShow [] = []
 customShow (r:rs) = (showRows r) ++ "\n" ++ (customShow rs)
    where showRows [] = []
-         showRows (x:xs) = (showPiece x) : showRows xs
-         showPiece pc = if(pc == Full Red) then 'R'
-                       else if(pc == Full Yellow) then 'Y'
-                       else 'O'
+         showRows (x:xs) = (showPiece x) ++ showRows xs
+         showPiece pc = if(pc == Full Red) then "R "
+                       else if(pc == Full Yellow) then "Y "
+                       else "O "
