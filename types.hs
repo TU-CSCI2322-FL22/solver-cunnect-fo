@@ -23,6 +23,8 @@ validMoves = undefined
 printBoard :: Board -> IO()
 printBoard brd = putStr $ customShow brd
 
+--call this showBoard, to match showRows. 
+--also make a showGameState, which calls this and prints out the current player
 customShow :: Board -> String
 customShow [] = []
 customShow (r:rs) = (showRows r) ++ "| \n----------------------------- \n" ++ (customShow rs)
