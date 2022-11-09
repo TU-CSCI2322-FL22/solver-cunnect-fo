@@ -25,9 +25,9 @@ printBoard brd = putStr $ customShow brd
 
 customShow :: Board -> String
 customShow [] = []
-customShow (r:rs) = (showRows r) ++ "\n" ++ (customShow rs)
+customShow (r:rs) = (showRows r) ++ "| \n----------------------------- \n" ++ (customShow rs)
    where showRows [] = []
          showRows (x:xs) = (showPiece x) ++ showRows xs
-         showPiece pc = if(pc == Full Red) then "R "
-                       else if(pc == Full Yellow) then "Y "
-                       else "O "
+         showPiece pc = if(pc == Full Red) then "| R "
+                       else if(pc == Full Yellow) then "| Y "
+                       else "| O "
