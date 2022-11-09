@@ -10,9 +10,6 @@ type Board = [[Piece]]
 type Move = Int 
 type GameState = (Board, Player)
 data Outcome = Winner Player | NoWinner | Tie
-
-
-
 getWinner :: GameState -> Outcome
 getWinner = undefined
 
@@ -38,8 +35,10 @@ makeMove col (board, turn) =
 	in if (hasHitEnd) then Nothing 
 	else Just (result, if turn == Red then Yellow else Red)
 
-	
+
 validMoves :: GameState -> [Move]
-validMoves = undefined
-
-
+validMoves myState@(pieces, who) = [ colNum | colNum <- [1..7], cols <- flippedBoard, notFull cols]
+    where flippedBoard = transpose pieces        
+          notFull = any (Empty==)
+           
+ 
