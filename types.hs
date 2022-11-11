@@ -1,3 +1,4 @@
+module ConnectFour where
 import Data.Tuple (swap)
 import Data.List
 import Data.List.Split
