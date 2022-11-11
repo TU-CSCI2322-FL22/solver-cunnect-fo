@@ -4,8 +4,10 @@ import Data.List.Split
 import Data.Maybe
 import Debug.Trace
 
+
 data Player = Red | Yellow deriving (Eq, Show)
 data Piece = Full Player | Empty deriving (Eq, Show)
+
 type Board = [[Piece]] 
 type Move = Int 
 type GameState = (Board, Player)
@@ -35,6 +37,25 @@ makeMove col (board, turn) =
 	in if (hasHitEnd) then Nothing 
 	else Just (result, if turn == Red then Yellow else Red)
 
+printBoard :: Board -> IO()
+printBoard brd = putStr $ showBoard brd
+
+
+printGame :: GameState -> IO()
+printGame gm = putStrLn $ showGameState gm
+
+--call this showBoard, to match showRows. (resolved)
+--also make a showGameState, which calls this and prints out the current player (resolved)
+showBoard :: Board -> String
+showBoard [] = []
+showBoard (r:rs) = (showRows r) ++ "| \n----------------------------- \n" ++ (showBoard rs)
+   where showRows [] = []
+         showRows (x:xs) = (showPiece x) ++ showRows xs
+         showPiece pc = if(pc == Full Red) then "| R "
+                       else if(pc == Full Yellow) then "| Y "
+                       else "| O "
+showGameState :: GameState -> String
+showGameState (brd,ply) = (showBoard brd) ++ "Current player: " ++ (show ply)
 
 validMoves :: GameState -> [Move]
 validMoves myState@(pieces, who) = [ colNum | colNum <- [1..7], cols <- flippedBoard, notFull cols]
@@ -42,3 +63,4 @@ validMoves myState@(pieces, who) = [ colNum | colNum <- [1..7], cols <- flippedB
           notFull = any (Empty==)
            
  
+
