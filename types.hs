@@ -21,15 +21,20 @@ validMoves :: Board -> [Move]
 validMoves = undefined
 
 printBoard :: Board -> IO()
-printBoard brd = putStr $ customShow brd
+printBoard brd = putStr $ showBoard brd
+
+printGame :: GameState -> IO()
+printGame gm = putStrLn $ showGameState gm
 
 --call this showBoard, to match showRows. 
 --also make a showGameState, which calls this and prints out the current player
-customShow :: Board -> String
-customShow [] = []
-customShow (r:rs) = (showRows r) ++ "| \n----------------------------- \n" ++ (customShow rs)
+showBoard :: Board -> String
+showBoard [] = []
+showBoard (r:rs) = (showRows r) ++ "| \n----------------------------- \n" ++ (showBoard rs)
    where showRows [] = []
          showRows (x:xs) = (showPiece x) ++ showRows xs
          showPiece pc = if(pc == Full Red) then "| R "
                        else if(pc == Full Yellow) then "| Y "
                        else "| O "
+showGameState :: GameState -> String
+showGameState (brd,ply) = (showBoard brd) ++ "Current player: " ++ (show ply)
