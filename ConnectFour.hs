@@ -10,7 +10,7 @@ data Piece = Full Player | Empty deriving (Eq, Show)
 type Board = [[Piece]] 
 type Move = Int 
 type GameState = (Board, Player)
-data Outcome = Winner Player | NoWinner | Tie
+data Outcome = Winner Player | NoWinner | Tie deriving (Eq, Show)
 getWinner :: GameState -> Outcome
 getWinner = undefined
 
@@ -34,7 +34,7 @@ checkEachRow col (row:rows) turn =
 makeMove col (board, turn) = 
 	let (result, hasHitEnd) = checkEachRow col (reverse board) turn
 	in if (hasHitEnd) then Nothing 
-	else Just (result, if turn == Red then Yellow else Red)
+	else Just (result, opponent turn)
 
 
 validMoves :: GameState -> [Move]
@@ -42,4 +42,6 @@ validMoves myState@(pieces, who) = [ colNum | colNum <- [1..7], cols <- flippedB
     where flippedBoard = transpose pieces        
           notFull = any (Empty==)
            
- 
+opponent :: Player -> Player
+opponent Red = Yellow
+opponent Yellow = Red
