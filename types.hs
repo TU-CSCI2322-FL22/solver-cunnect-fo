@@ -12,46 +12,44 @@ type GameState = (Board, Player)
 data Outcome = Winner Player | NoWinner | Tie deriving (Show,Eq)
 
 
-
-getWinner :: GameState -> Outcome
-getWinner (brd,ply) = if(rows == NoWinner) then 
+{-
+oldGetWinner :: GameState -> Outcome
+oldGetWinner (brd,ply) = if(rows == NoWinner) then 
                          (if(cols == NoWinner) then
                             (if(diagdown == NoWinner) then
                                (if(validMoves (brd,ply) == []) then Tie else NoWinner)
                              else diagdown)
                           else cols) 
                       else rows
+-}
 
-   where rows = checkRow brd
-         cols = checkCol brd
-         diagdown = checkDiagDown brd
-         --diagup = checkDiagUp brd
+getWinner :: GameState -> Outcome
+getWinner (brd,ply) = combineAnswers [rows,cols,diagdown,diagup] --Still needs tie condition
 
-         checkRow ((_:_:_:[]):[]) = NoWinner
-         checkRow ((_:_:_:[]):ys) = checkRow ys
-         checkRow ((a:b:c:d:xs):ys) = if(checkFour a b c d == NoWinner) then checkRow ((b:c:d:xs):ys)
+   where rows = checkRows brd
+         cols = checkCols brd
+         diagdown = checkDownDiags brd
+         diagup = checkUpDiags brd
+
+         checkRow (_:_:_:[]) = NoWinner
+         checkRow (a:b:c:d:xs) = if(checkFour a b c d == NoWinner) then checkRow (b:c:d:xs)
                                       else checkFour a b c d
 
-         checkCol brd = checkRow $ transpose brd
-         {-checkCol ([]:_:_:_:[]) = NoWinner
-         checkCol (_:[]:_:_:[]) = NoWinner
-         checkCol (_:_:[]:_:[]) = NoWinner
-         checkCol (_:_:_:[]:[]) = NoWinner
-         checkCol ([]:_:_:_:ys) = checkCol ys
-         checkCol (_:[]:_:_:ys) = checkCol ys
-         checkCol (_:_:[]:_:ys) = checkCol ys
-         checkCol (_:_:_:[]:ys) = checkCol ys
-         checkCol ((a:ws):(b:xs):(c:ys):(d:zs):ss) = if(checkFour a b c d == NoWinner) then checkCol (ws:xs:ys:zs:ss)
-                                                     else checkFour a b c d -}
-         
-         --checkDiagDown ((ws):(_:xs):(_:_:ys):(_:_:_:zs):ss) = checkCol (ws:xs:ys:zs:ss)
-         --Can't use checkCol because it recurses incorrectly
-        
+         checkRows brd = combineAnswers [checkRow x | x <- brd]
+
+         checkCols brd = combineAnswers [checkRow x | x <- (transpose brd)]
+
+         checkDownDiags somethin = combineAnswers [checkRow x | x <- (transpose somethin)] 
+         --TODO: Figure out how to take stuff off the rows to make diags work
+         checkUpDiags somethin = combineAnswers [checkRow x | x <- (transpose somethin)]
+
          checkFour a b c d = if(all (\p -> p == Full Red) [a,b,c,d]) then Winner Red
                              else if(all (\p -> p == Full Yellow) [a,b,c,d]) then Winner Yellow
                              else NoWinner
 
-
+         combineAnswers :: [Outcome] -> Outcome
+         combineAnswers [] = NoWinner
+         combineAnswers (x:xs) = if(x /= NoWinner) then x else combineAnswers xs
 
 
 
