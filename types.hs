@@ -18,7 +18,6 @@ getWinner (brd,ply) = if(winner == NoWinner && validMoves (brd,ply) == []) then 
                       else winner
 
    where winner = combineAnswers [checkRows brd, checkCols brd, checkDownDiags brd, checkUpDiags brd]
-
          
          checkRow [] = NoWinner
          checkRow (_:[]) = NoWinner
@@ -49,14 +48,51 @@ getWinner (brd,ply) = if(winner == NoWinner && validMoves (brd,ply) == []) then 
          combineAnswers [] = NoWinner
          combineAnswers (x:xs) = if(x /= NoWinner) then x else combineAnswers xs
 
+makeRowMove :: Int -> [Piece] -> Player -> ([Piece], Bool)
+makeRowMove 0 (x:xs) turn = 
+	if (x == Empty)
+    then ((Full turn):xs, True)
+    else (x:xs, False)
+makeRowMove col (x:xs) turn =
+	let (row, hasPlaced) = (makeRowMove (col - 1) xs turn)
+	in (x:row, hasPlaced)
+checkEachRow col [] turn = ([], True)
+checkEachRow col (row:rows) turn =
+	let (result, hasChanged) = makeRowMove col row turn
+	in if (hasChanged) then
+		(result:rows, False)
+		else
+			let (results, hasHitEnd) = checkEachRow col rows turn 
+			in (row:results, hasHitEnd)
+--makeMove :: Int -> GameState -> Player -> Maybe GameState
+makeMove col (board, turn) = 
+	let (result, hasHitEnd) = checkEachRow col (reverse board) turn
+	in if (hasHitEnd) then Nothing 
+	else Just (result, if turn == Red then Yellow else Red)
 
+printBoard :: Board -> IO()
+printBoard brd = putStr $ showBoard brd
 
-makeMove :: Int -> GameState -> Maybe Board
-makeMove = undefined
+printGame :: GameState -> IO()
+printGame gm = putStrLn $ showGameState gm
+
+--call this showBoard, to match showRows. (resolved)
+--also make a showGameState, which calls this and prints out the current player (resolved)
+showBoard :: Board -> String
+showBoard [] = []
+showBoard (r:rs) = (showRows r) ++ "| \n----------------------------- \n" ++ (showBoard rs)
+   where showRows [] = []
+         showRows (x:xs) = (showPiece x) ++ showRows xs
+         showPiece pc = if(pc == Full Red) then "| R "
+                       else if(pc == Full Yellow) then "| Y "
+                       else "| O "
+showGameState :: GameState -> String
+showGameState (brd,ply) = (showBoard brd) ++ "Current player: " ++ (show ply)
 
 validMoves :: GameState -> [Move]
 validMoves myState@(pieces, who) = [ colNum | colNum <- [1..7], cols <- flippedBoard, notFull cols]
     where flippedBoard = transpose pieces        
           notFull = any (Empty==)
-
+           
+ 
 
