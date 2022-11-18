@@ -14,7 +14,7 @@ getWinner :: GameState -> Outcome
 getWinner = undefined
 
 makeRowMove :: Int -> [Piece] -> Player -> ([Piece], Bool)
-makeRowMove 0 (x:xs) turn = 
+makeRowMove 0 (x:xs) turn =
 	if (x == Empty)
     then ((Full turn):xs, True)
     else (x:xs, False)
@@ -41,4 +41,6 @@ validMoves myState@(pieces, who) = [ colNum | colNum <- [1..7], cols <- flippedB
     where flippedBoard = transpose pieces        
           notFull = any (Empty==)
            
+
+
  
