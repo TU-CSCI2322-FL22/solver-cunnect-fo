@@ -29,7 +29,7 @@ checkEachRow col (row:rows) turn =
 		else
 			let (results, hasHitEnd) = checkEachRow col rows turn 
 			in (row:results, hasHitEnd)
---makeMove :: Int -> GameState -> Player -> Maybe GameState
+makeMove :: Int -> GameState -> Maybe GameState
 makeMove col (board, turn) = 
 	let (result, hasHitEnd) = checkEachRow col (reverse board) turn
 	in if (hasHitEnd) then Nothing 
