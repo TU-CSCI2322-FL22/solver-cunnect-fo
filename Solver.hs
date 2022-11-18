@@ -55,7 +55,10 @@ writeGame state@(board, turn) fp =
 	in writeFile fp strState
 
 loadGame :: FilePath -> IO GameState
-loadGame = undefined --Friday
+loadGame fp =
+    do all <- readFile fp 
+       return (readGame all)
+
 
 putWinner :: GameState -> IO ()
 putWinner state = putStr $ show (getWinner state)
