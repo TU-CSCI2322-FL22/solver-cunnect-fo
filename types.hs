@@ -1,3 +1,4 @@
+module ConnectFour where
 import Data.Tuple (swap)
 import Data.List
 import Data.List.Split
@@ -9,8 +10,9 @@ data Piece = Full Player | Empty deriving (Show,Eq)
 type Board = [[Piece]] 
 type Move = Int 
 type GameState = (Board, Player)
-data Outcome = Winner Player | NoWinner | Tie deriving (Show,Eq)
 
+
+data Outcome = Winner Player | NoWinner | Tie deriving (Eq, Show)
 
 
 getWinner :: GameState -> Outcome
@@ -64,11 +66,13 @@ checkEachRow col (row:rows) turn =
 		else
 			let (results, hasHitEnd) = checkEachRow col rows turn 
 			in (row:results, hasHitEnd)
+
 --makeMove :: Int -> GameState -> Player -> Maybe GameState
 makeMove col (board, turn) = 
 	let (result, hasHitEnd) = checkEachRow col (reverse board) turn
 	in if (hasHitEnd) then Nothing 
-	else Just (result, if turn == Red then Yellow else Red)
+	else Just (result, opponent turn)
+
 
 printBoard :: Board -> IO()
 printBoard brd = putStr $ showBoard brd
@@ -94,4 +98,7 @@ validMoves myState@(pieces, who) = [ colNum | colNum <- [1..7], cols <- flippedB
     where flippedBoard = transpose pieces        
           notFull = any (Empty==)
            
- 
+opponent :: Player -> Player
+opponent Red = Yellow
+opponent Yellow = Red
+
