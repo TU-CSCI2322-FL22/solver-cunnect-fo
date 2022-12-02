@@ -63,4 +63,15 @@ loadGame fp =
 putWinner :: GameState -> IO ()
 putWinner state = putStr $ show (getWinner state)
 
+bestMoveCutoff :: GameState -> Int -> Move
+bestMoveCutoff state@(board, turn) cutoff =
+	if (turn == Red) then snd (maximum [(scoreMoves (unwrapState (makeMove mv state)) (cutoff - 1), mv) | mv <- validMoves state])
+	else snd (minimum [(scoreMoves (unwrapState (makeMove mv state)) (cutoff - 1), mv) | mv <- validMoves state])
 
+-- Finds the best possible move for a given game state.
+scoreMoves :: GameState -> Int -> Rational
+scoreMoves state@(board, turn) 0 = evaluateState state -- Red = 1, Yellow = -1, tie = 0
+scoreMoves state@(board, turn) cutoff = 
+    let outcomes = [scoreMoves (unwrapState (makeMove mv state)) (cutoff - 1) | mv <- validMoves state]
+	in if (turn == Red) then maximum outcomes
+	else minimum outcomes
