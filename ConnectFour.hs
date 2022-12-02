@@ -16,7 +16,7 @@ data Outcome = Winner Player | NoWinner | Tie deriving (Eq, Show)
 
 
 getWinner :: GameState -> Outcome
-getWinner (brd,ply) = if(winner == NoWinner && validMoves (brd,ply) == []) then Tie 
+getWinner state@(brd,ply) = if(winner == NoWinner && validMoves state == []) then Tie 
                       else winner
 
    where winner = combineAnswers [checkRows brd, checkCols brd, checkDownDiags brd, checkUpDiags brd]
@@ -50,28 +50,62 @@ getWinner (brd,ply) = if(winner == NoWinner && validMoves (brd,ply) == []) then 
          combineAnswers [] = NoWinner
          combineAnswers (x:xs) = if(x /= NoWinner) then x else combineAnswers xs
 
+evalBoard :: GameState -> Int
+evalBoard state@(brd,ply) = winner
+
+   where winner = combineAnswers [checkRows brd, checkCols brd, checkDownDiags brd, checkUpDiags brd]
+         
+         checkRow [] = 0
+         checkRow (_:[]) = 0
+         checkRow (a:b:[]) = 0
+         checkRow (a:b:c:[]) = 0
+         checkRow (a:b:c:d:xs) = (scoreSet a b c d) + checkRow (b:c:d:xs)
+
+         checkRows brd = combineAnswers [checkRow x | x <- brd]
+
+         checkCols brd = combineAnswers [checkRow x | x <- (transpose brd)]
+
+         checkDownDiag ((a:ws):(_:b:xs):(_:_:c:ys):(_:_:_:d:zs):[]) = combineAnswers [scoreSet a b c d, checkCols (ws:xs:ys:zs:[])]
+         
+         checkDownDiags (_:_:_:[]) = 0
+         checkDownDiags (ws:xs:ys:zs:ss) = combineAnswers [checkDownDiag [ws,xs,ys,zs],checkDownDiags (xs:ys:zs:ss)]
+
+         checkUpDiag ((_:_:_:a:ws):(_:_:b:xs):(_:c:ys):(d:zs):[]) = combineAnswers [scoreSet a b c d, checkCols (ws:xs:ys:zs:[])]
+        
+         checkUpDiags (_:_:_:[]) = 0
+         checkUpDiags (ws:xs:ys:zs:ss) = combineAnswers [checkUpDiag [ws,xs,ys,zs],checkUpDiags (xs:ys:zs:ss)]
+
+         combineAnswers :: [Int] -> Int
+         combineAnswers lst = sum lst
+
+         scoreSet a b c d = (numOf [a,b,c,d]) ^ 3 
+         
+         numOf lst = if(all (Empty/=) lst) then 0
+                     else sum $ map (\x -> if(x==Full Red) then 1 else if(x==Full Yellow) then -1 else 0) lst
+
+
 makeRowMove :: Int -> [Piece] -> Player -> ([Piece], Bool)
 makeRowMove 0 (x:xs) turn = 
-	if (x == Empty)
+    if (x == Empty)
     then ((Full turn):xs, True)
     else (x:xs, False)
 makeRowMove col (x:xs) turn =
-	let (row, hasPlaced) = (makeRowMove (col - 1) xs turn)
-	in (x:row, hasPlaced)
+    let (row, hasPlaced) = (makeRowMove (col - 1) xs turn)
+    in (x:row, hasPlaced)
 checkEachRow col [] turn = ([], True)
 checkEachRow col (row:rows) turn =
-	let (result, hasChanged) = makeRowMove col row turn
-	in if (hasChanged) then
-		(result:rows, False)
-		else
-			let (results, hasHitEnd) = checkEachRow col rows turn 
-			in (row:results, hasHitEnd)
+    let (result, hasChanged) = makeRowMove col row turn
+    in if (hasChanged) then
+        (result:rows, False)
+        else
+            let (results, hasHitEnd) = checkEachRow col rows turn 
+            in (row:results, hasHitEnd)
 
 --makeMove :: Int -> GameState -> Player -> Maybe GameState
 makeMove col (board, turn) = 
-	let (result, hasHitEnd) = checkEachRow col (reverse board) turn
-	in if (hasHitEnd) then Nothing 
-	else Just (result, opponent turn)
+    let (result, hasHitEnd) = checkEachRow col (reverse board) turn
+    in if (hasHitEnd) then Nothing 
+    else Just (result, opponent turn)
 
 
 printBoard :: Board -> IO()

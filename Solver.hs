@@ -4,7 +4,7 @@ import Data.List.Split
 
 unwrapState :: Maybe GameState -> GameState
 unwrapState state = 
-	case state of  
+    case state of  
     Nothing -> error "Valid Moves function returns an invalid move" 
     Just out -> out
 
