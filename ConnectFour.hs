@@ -85,13 +85,18 @@ evalBoard state@(brd,ply) = winner
 
 
 makeMove :: Int -> GameState -> Maybe GameState
-makeMove col (board, turn) = 
+makeMove col state = makeMoveZeroToSix (col - 1) state
+
+makeMoveZeroToSix :: Int -> GameState -> Maybe GameState
+makeMoveZeroToSix col (board, turn) =
     let (result, hasHitEnd) = checkEachRow col (reverse board) turn
-    in if (hasHitEnd) then Nothing 
+    in if (hasHitEnd) then Nothing
+
     else Just (reverse result, opponent turn)
     where
        makeRowMove :: Int -> [Piece] -> Player -> ([Piece], Bool)
-       makeRowMove 0 (x:xs) turn = 
+       makeRowMove col [] turn = error ("Invalid Input Column: " ++ show (col + 7))
+       makeRowMove 0 (x:xs) turn =
           if (x == Empty)
           then ((Full turn):xs, True)
           else (x:xs, False)
@@ -106,26 +111,9 @@ makeMove col (board, turn) =
           in if (hasChanged) then
              (result:rows, False)
           else
-             let (results, hasHitEnd) = checkEachRow col rows turn 
+             let (results, hasHitEnd) = checkEachRow col rows turn
              in (row:results, hasHitEnd)
 
-{-
-makeMove :: Int -> GameState -> Maybe GameState
-makeMove n (board,turn) = if(flippedMove n (transpose board,turn) == Nothing) then Nothing
-                          else Just (transpose $ fst $ fromJust $ (flippedMove n (transpose board,turn)), opponent turn)
-   where
-      flippedMove :: Int -> GameState -> Maybe GameState
-      flippedMove 0 ((x:xs),turn) = if(recursCol (reverse x) turn == Nothing) then Nothing
-                                    else Just (((reverse $ fromJust $ recursCol (reverse x) turn):xs),turn)
-      flippedMove n ([],turn) = Nothing
-      flippedMove n state@((x:xs),turn) = if (flippedMove (n-1) state == Nothing) then Nothing
-                                          else Just ((x:(fst $ fromJust $ flippedMove (n-1) state)),turn)
-      recursCol :: [Piece] -> Player -> Maybe [Piece]
-      recursCol [] turn = Nothing
-      recursCol (x:xs) turn = if (x == Empty) then Just (Full turn:xs)
-                              else if(recursCol xs turn == Nothing) then Nothing
-                                   else Just (x:(fromJust $ recursCol xs turn))
--}
 
 printBoard :: Board -> IO()
 printBoard brd = putStr $ showBoard brd
