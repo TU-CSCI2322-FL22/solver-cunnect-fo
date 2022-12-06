@@ -83,39 +83,18 @@ evalBoard state@(brd,ply) = winner
          numOf lst = if(all (Empty/=) lst || (any (Full Red==) lst && any (Full Yellow==) lst)) then 0
                      else sum $ map (\x -> if(x==Full Red) then 1 else if(x==Full Yellow) then -1 else 0) lst
 
-
-makeRowMove :: Int -> [Piece] -> Player -> ([Piece], Bool)
-makeRowMove 0 (x:xs) turn = 
-    if (x == Empty)
-    then ((Full turn):xs, True)
-    else (x:xs, False)
-makeRowMove col (x:xs) turn =
-    let (row, hasPlaced) = (makeRowMove (col - 1) xs turn)
-    in (x:row, hasPlaced)
-checkEachRow col [] turn = ([], True)
-checkEachRow col (row:rows) turn =
-    let (result, hasChanged) = makeRowMove col row turn
-    in if (hasChanged) then
-        (result:rows, False)
-        else
-            let (results, hasHitEnd) = checkEachRow col rows turn 
-            in (row:results, hasHitEnd)
-
 makeMove :: Int -> GameState -> Maybe GameState
-makeMove col (board, turn) = 
-    let (result, hasHitEnd) = checkEachRow col (reverse board) turn
-    in if (hasHitEnd) then Nothing 
-    else Just (result, opponent turn)
+makeMove col state = makeMoveZeroToSix (col - 1) state
 
-{-
-oldMakeMove :: Int -> GameState -> Maybe GameState
-oldMakeMove col (board, turn) = 
+makeMoveZeroToSix :: Int -> GameState -> Maybe GameState
+makeMoveZeroToSix col (board, turn) =
     let (result, hasHitEnd) = checkEachRow col (reverse board) turn
-    in if (hasHitEnd) then Nothing 
+    in if (hasHitEnd) then Nothing
     else Just (reverse result, opponent turn)
     where
        makeRowMove :: Int -> [Piece] -> Player -> ([Piece], Bool)
-       makeRowMove 0 (x:xs) turn = 
+       makeRowMove col [] turn = error ("Invalid Input Column: " ++ show (col + 7))
+       makeRowMove 0 (x:xs) turn =
           if (x == Empty)
           then ((Full turn):xs, True)
           else (x:xs, False)
@@ -130,23 +109,8 @@ oldMakeMove col (board, turn) =
           in if (hasChanged) then
              (result:rows, False)
           else
-             let (results, hasHitEnd) = checkEachRow col rows turn 
+             let (results, hasHitEnd) = checkEachRow col rows turn
              in (row:results, hasHitEnd)
-
-makeMove :: Int -> GameState -> Maybe GameState
-makeMove n (board,turn) = if(flippedMove n (transpose board,turn) == Nothing) then Nothing
-                          else Just (fst $ transpose $ fromJust $ flippedMove n (transpose board,turn), opponent turn)
-   where
-      flippedMove 0 ((x:xs),turn) = if(recursCol (reverse x) turn == Nothing) then Nothing
-                                    else Just (((reverse $ fromJust $ recursCol (reverse x) turn):xs),turn)
-      flippedMove n state@((x:xs),turn) = if (flippedMove n-1 state == Nothing) then Nothing
-                                          else Just ((x:(fst $ fromJust $ flippedMove n-1 state)),turn)
-
-      recursCol [] turn = Nothing
-      recursCol (x:xs) turn = if (x == Empty) then Just turn:xs
-                              else if(recursCol xs turn == Nothing) then Nothing
-                                   else Just x:(recursCol xs turn)
--}
 
 printBoard :: Board -> IO()
 printBoard brd = putStr $ showBoard brd

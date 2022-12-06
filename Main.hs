@@ -1,12 +1,13 @@
 module Main where
 import Solver
+import ConnectFour
 import Data.List.Split
 import System.IO
 import System.Environment
 import System.Console.GetOpt
 import Text.Read (readMaybe)
 
-data Flag = Help | RunWinner | Depth Int | InputMove Int | Verbose deriving (Eq, Show)
+data Flag = Help | RunWinner | Depth String | InputMove String | Verbose deriving (Eq, Show)
 options :: [OptDescr Flag]
 options = [ Option ['w'] ["winner"] (NoArg RunWinner)       "Print out the best move using an exhaustive search.",
     Option ['d'] ["depth"] (ReqArg Depth "#")     "Print out the best move with a search depth of #.", 
@@ -31,38 +32,43 @@ getMove ((InputMove x):_) =
 getMove (_:flags) = getMove flags
 
 inputFormatRow :: [Piece] -> String
-inputFormatRow row = [if (pc == Red) then 'R' else (if (pc == Yellow) then 'Y' else 'E') | pc <- row]
+inputFormatRow row = [if (pc == Full Red) then 'R' else (if (pc == Full Yellow) then 'Y' else 'E') | pc <- row]
 
 inputFormatShowBoard :: GameState -> String
 inputFormatShowBoard state@(board, turn) = 
-    (if (turn == Red) then 'R' else 'Y') : (unlines [inputFormatRow row | row <- board])
+    (if (turn == Red) then "R\n" else "Y\n") ++ (unlines [inputFormatRow row | row <- board])
 
-explainMove :: GameState -> String
-explainMove state = 
+explainMove :: GameState -> Int -> String
+explainMove state depth = 
     case getWinner state of 
     Winner Red -> "Red is winning! \n"
     Winner Yellow -> "Yellow is winning! \n"
     Tie -> "The game is tied. \n"
-    NoWinner -> "The estimated score is " ++ evaluateState state ++ ". A higher score is better for Red while a lower score is better for Yellow. \n"
+    NoWinner -> "The estimated score is " ++ show (bestMoveCutoff state depth) ++ ". A higher score is better for Red while a lower score is better for Yellow. \n"
+
+hasMove :: [Flag] -> Bool
+hasMove [] = False
+hasMove ((InputMove _):fs) = True
+hasMove (f:fs) = hasMove fs
 
 main :: IO ()
-     do args <- getArgs
-        let (flags, inputs, errors) = getOpt Permute options args
-        if (Help `elem` flags || (not $ null error)) || (null inputs) then
-            putStrLn $ usageInfo “Usage: Fortunes [options] [file]” options
-        else if (RunWinner `elem` flags) then
-            let state = loadGame (head inputs)
-            in putStrLn $ bestMove state
-        else if (Depth `elem` flags) then
+main =
+    do args <- getArgs
+       let (flags, inputs, errors) = getOpt Permute options args
+       state <- loadGame (head inputs)
+       if (Help `elem` flags || (not $ null errors)) || (null inputs) then
+            putStrLn $ usageInfo "Usage: Main.hs [options] [file]" options
+       else if (RunWinner `elem` flags) then do
+            putStrLn $ show (bestMove state)
+       else if (hasMove flags) then do
+            case makeMove (getMove flags) state of 
+                Nothing -> putStrLn "Invalid Move. Moves must be 1-7 in non-empty columns."
+                Just resState -> putStrLn $ inputFormatShowBoard resState ++ (if (Verbose `elem` flags) then explainMove state 3 else "")
+        else do
             let depth = getDepth flags
-            in putStrLn $ bestMoveCutoff (loadGame (head inputs)) depth
-        else if (InputMove `elem` flags) then
-            let state = loadGame (head inputs)
-            in case makeMove (getMove flags) state of 
-                Nothing -> error "Invalid Move. Moves must be 1-7 in non-empty columns."
-                Just resState -> putStrLn $ inputFormatShowBoard resState ++ (if (Verbose `elem` flags) then explainMove (getMove flags) else "")
-        else
-            error "Invalid input."
+            if (Verbose `elem` flags)
+            then putStrLn $ explainMove state depth
+            else putStrLn $ show (bestMoveCutoff state depth)
             
-            
+
 
