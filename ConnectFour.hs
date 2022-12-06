@@ -83,6 +83,7 @@ evalBoard state@(brd,ply) = winner
          numOf lst = if(all (Empty/=) lst || (any (Full Red==) lst && any (Full Yellow==) lst)) then 0
                      else sum $ map (\x -> if(x==Full Red) then 1 else if(x==Full Yellow) then -1 else 0) lst
 
+
 makeMove :: Int -> GameState -> Maybe GameState
 makeMove col state = makeMoveZeroToSix (col - 1) state
 
@@ -90,6 +91,7 @@ makeMoveZeroToSix :: Int -> GameState -> Maybe GameState
 makeMoveZeroToSix col (board, turn) =
     let (result, hasHitEnd) = checkEachRow col (reverse board) turn
     in if (hasHitEnd) then Nothing
+
     else Just (reverse result, opponent turn)
     where
        makeRowMove :: Int -> [Piece] -> Player -> ([Piece], Bool)
@@ -111,6 +113,7 @@ makeMoveZeroToSix col (board, turn) =
           else
              let (results, hasHitEnd) = checkEachRow col rows turn
              in (row:results, hasHitEnd)
+
 
 printBoard :: Board -> IO()
 printBoard brd = putStr $ showBoard brd
